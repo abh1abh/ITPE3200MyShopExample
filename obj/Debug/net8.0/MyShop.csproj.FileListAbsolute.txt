@@ -30,3 +30,4 @@
 /Users/alexanderhoyskel/VSCode/OsloMet/ITPE3200/MyShop/obj/Debug/net8.0/scopedcss/projectbundle/MyShop.bundle.scp.css
 /Users/alexanderhoyskel/VSCode/OsloMet/ITPE3200/MyShop/bin/Debug/net8.0/package-lock.json
 /Users/alexanderhoyskel/VSCode/OsloMet/ITPE3200/MyShop/bin/Debug/net8.0/package.json
+/Users/alexanderhoyskel/VSCode/OsloMet/ITPE3200/MyShop/obj/Debug/net8.0/MyShop.sourcelink.json
