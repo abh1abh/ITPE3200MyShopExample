@@ -1,5 +1,10 @@
 
+using System.Reflection.Metadata.Ecma335;
+using System.Security.Cryptography.X509Certificates;
+using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using MyShop.Models;
 using MyShop.ViewModels;
 
@@ -14,26 +19,91 @@ public class ItemController : Controller
         _itemDbContext = itemDbContext;
     }
 
-    public IActionResult Table()
+    public async Task<ActionResult>  Table()
     {
-        List<Item> items = _itemDbContext.Items.ToList();
+        List<Item> items = await _itemDbContext.Items.ToListAsync();
         var itemsViewModel = new ItemsViewModel(items, "Table");
         return View(itemsViewModel);
     }
 
-    public IActionResult Grid()
+    public async Task<ActionResult>  Grid()
     {
-        List<Item> items = _itemDbContext.Items.ToList();
+        List<Item> items = await _itemDbContext.Items.ToListAsync();
         var itemsViewModel = new ItemsViewModel(items, "Table");
         return View(itemsViewModel);
     }
 
-    public IActionResult Details(int id)
+    public async Task<ActionResult>  Details(int id)
     {
-        List<Item> items = _itemDbContext.Items.ToList();
+        List<Item> items = await _itemDbContext.Items.ToListAsync();
         var item = items.FirstOrDefault(i => i.ItemId == id);
         if (item == null) return NotFound();
         return View(item);
+    }
+
+    [HttpGet]
+    public IActionResult Create()
+    {
+        return View();
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> Create(Item item)
+    {
+        if (ModelState.IsValid)
+        {
+            _itemDbContext.Items.Add(item);
+            await _itemDbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Table));
+        }
+        return View(item);
+    }    
+
+    [HttpGet]
+    public async Task<ActionResult>  Update(int id)
+    {
+        var item = await _itemDbContext.Items.FindAsync(id);
+        if (item == null)
+        {
+            return NotFound();
+        }
+        return View(item);
+    }
+
+    [HttpPost]
+    public async Task<ActionResult>  Update(Item item)
+    {
+        if (ModelState.IsValid)
+        {
+            _itemDbContext.Items.Update(item);
+            await _itemDbContext.SaveChangesAsync();
+            return RedirectToAction(nameof(Table));
+        }
+        return View(item);
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> Delete(int id)
+    {
+        var item = await _itemDbContext.Items.FindAsync(id);
+        if (item == null)
+        {
+            return NotFound();
+        }
+        return View(item);
+    }
+
+    [HttpPost]
+    public async Task<IActionResult> DeleteConfirmed(int id)
+    {
+        var item = _itemDbContext.Items.Find(id);
+        if (item == null)
+        {
+            return NotFound();
+        }
+        _itemDbContext.Items.Remove(item);
+        await _itemDbContext.SaveChangesAsync();
+        return RedirectToAction(nameof(Table));
     }
 
     public List<Item> GetItems()
