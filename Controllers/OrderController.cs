@@ -2,30 +2,33 @@ using Microsoft.AspNetCore.Mvc;
 using MyShop.Models;
 using Microsoft.EntityFrameworkCore;
 using MyShop.ViewModels;
+using MyShop.DAL;
 using Microsoft.AspNetCore.Mvc.Rendering;
 
 namespace MyShop.Controllers;
 
 public class OrderController : Controller
 {
-    private readonly ItemDbContext _itemDbContext;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IItemRepository _itemRepository;
 
-    public OrderController(ItemDbContext itemDbContext)
+    public OrderController(IOrderRepository orderRepository, IItemRepository itemRepository)
     {
-        _itemDbContext = itemDbContext;
+        _orderRepository = orderRepository;
+        _itemRepository = itemRepository;
     }
 
     public async Task<IActionResult> Table()
     {
-        List<Order> orders = await _itemDbContext.Orders.ToListAsync();
+        List<Order> orders = await _orderRepository.GetAll();
         return View(orders);
     }
 
     [HttpGet]
     public async Task<IActionResult> CreateOrderItem()
     {
-        var items = await _itemDbContext.Items.ToListAsync();
-        var orders = await _itemDbContext.Orders.ToListAsync();
+        var items = await _itemRepository.GetAll(); // should i use my item repository or a new method in my order repo?
+        var orders = await _orderRepository.GetAll();
         var createOrderItemViewModel = new CreateOrderItemViewModel
         {
             OrderItem = new OrderItem(),
@@ -52,10 +55,10 @@ public class OrderController : Controller
 
         try
         {
-            var newItem = _itemDbContext.Items.Find(orderItem.ItemId);
-            var newOrder = _itemDbContext.Orders.Find(orderItem.OrderId);
+            var item  = await _itemRepository.GetItemById(orderItem.ItemId);
+            var order = await _orderRepository.GetOrderById(orderItem.OrderId);
 
-            if (newItem == null || newOrder == null)
+            if (item == null || order == null)
             {
                 return BadRequest("Item or Order not found.");
             }
@@ -63,14 +66,11 @@ public class OrderController : Controller
             var newOrderItem = new OrderItem
             {
                 ItemId = orderItem.ItemId,
-                Item = newItem,
                 Quantity = orderItem.Quantity,
                 OrderId = orderItem.OrderId,
-                Order = newOrder
+                OrderItemPrice = orderItem.Quantity * item.Price
             };
-            newOrderItem.OrderItemPrice = orderItem.Quantity * newOrderItem.Item.Price;
-            _itemDbContext.OrderItems.Add(newOrderItem);
-            await _itemDbContext.SaveChangesAsync();
+            await _orderRepository.AddOrderItem(newOrderItem);
             return RedirectToAction(nameof(Table));
         }
         catch

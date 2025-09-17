@@ -1,5 +1,6 @@
 using Microsoft.EntityFrameworkCore;
 using MyShop.Models;
+using MyShop.DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -9,6 +10,10 @@ builder.Services.AddDbContext<ItemDbContext>(options => {
     options.UseSqlite(
         builder.Configuration["ConnectionStrings:ItemDbContextConnection"]);
 });
+
+builder.Services.AddScoped<IItemRepository, ItemRepository>();
+builder.Services.AddScoped<IOrderRepository, OrderRepository>();
+
 
 var app = builder.Build();
 
